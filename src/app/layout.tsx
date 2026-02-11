@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Heebo } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AppShell } from "@/components/app-shell";
+import { Providers } from "@/components/providers";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const heebo = Heebo({
@@ -28,7 +29,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppShell>{children}</AppShell>
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
         </ThemeProvider>
       </body>
     </html>

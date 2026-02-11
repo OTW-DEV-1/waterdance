@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ClipboardList,
   Users,
+  Briefcase,
   BarChart3,
   ChevronsRight,
   ChevronsLeft,
@@ -24,6 +25,7 @@ const menuItems = [
   { id: "meetings", href: "/meetings", label: he.nav.meetings, icon: CalendarDays },
   { id: "waiting-list", href: "/waiting-list", label: he.nav.waitingList, icon: ClipboardList },
   { id: "customers", href: "/customers", label: he.nav.customers, icon: Users },
+  { id: "services", href: "/services", label: he.nav.services, icon: Briefcase },
   { id: "reports", href: "/reports", label: he.nav.reports, icon: BarChart3 },
 ];
 

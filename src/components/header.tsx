@@ -1,18 +1,21 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import { Sun, Moon, Bell, User, Settings, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
-  Sun,
-  Moon,
-  Bell,
-  User,
-  Settings,
-  LogOut,
-  ChevronDown,
-} from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { he } from "@/lib/i18n/he";
+import { useAuth } from "@/lib/stores";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -20,21 +23,16 @@ interface HeaderProps {
 
 export function Header({ sidebarOpen }: HeaderProps) {
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  function handleLogout() {
+    logout();
+    router.push("/login");
+  }
 
   return (
     <header
@@ -43,68 +41,54 @@ export function Header({ sidebarOpen }: HeaderProps) {
         sidebarOpen ? "right-64" : "right-16"
       )}
     >
-      {/* Page area - left side in RTL */}
-      <div className="flex items-center gap-2">
-        {/* Placeholder for breadcrumbs or page title */}
-      </div>
+      <div className="flex items-center gap-2" />
 
-      {/* Actions - right side in RTL (appears on left due to RTL) */}
-      <div className="flex items-center gap-2">
-        {/* Theme toggle */}
+      <div className="flex items-center gap-1">
         {mounted && (
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
             aria-label={he.header.toggleTheme}
           >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </button>
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
         )}
 
-        {/* Notifications */}
-        <button
-          className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors relative"
-          aria-label={he.header.notifications}
-        >
+        <Button variant="ghost" size="icon" className="relative" aria-label={he.header.notifications}>
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1 left-1 h-2 w-2 bg-destructive rounded-full" />
-        </button>
+          <span className="absolute top-1.5 left-1.5 h-2 w-2 bg-destructive rounded-full" />
+        </Button>
 
-        {/* User menu */}
-        <div className="relative" ref={menuRef}>
-          <button
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center gap-2 p-1.5 pr-3 rounded-lg hover:bg-accent transition-colors"
-          >
-            <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-              {he.header.userInitials}
-            </div>
-            <span className="text-sm font-medium hidden sm:inline">{he.header.user}</span>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </button>
-
-          {userMenuOpen && (
-            <div className="absolute left-0 top-full mt-1 w-48 bg-popover text-popover-foreground rounded-lg border border-border shadow-lg py-1 z-50">
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent transition-colors">
-                <User className="h-4 w-4" />
-                <span>{he.userMenu.profile}</span>
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-accent transition-colors">
-                <Settings className="h-4 w-4" />
-                <span>{he.userMenu.settings}</span>
-              </button>
-              <div className="border-t border-border my-1" />
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-destructive hover:bg-accent transition-colors">
-                <LogOut className="h-4 w-4" />
-                <span>{he.userMenu.logout}</span>
-              </button>
-            </div>
-          )}
-        </div>
+        <DropdownMenu dir="rtl">
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="gap-2 pr-3">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="text-xs">
+                  {user?.name?.slice(0, 2) || he.header.userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium hidden sm:inline">
+                {user?.name || he.header.user}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuItem>
+              <User className="h-4 w-4 ml-2" />
+              {he.userMenu.profile}
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Settings className="h-4 w-4 ml-2" />
+              {he.userMenu.settings}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+              <LogOut className="h-4 w-4 ml-2" />
+              {he.userMenu.logout}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
